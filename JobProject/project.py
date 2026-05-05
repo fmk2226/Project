@@ -22,12 +22,17 @@ categorical_features=X.dtypes[X.dtypes == 'bool'].index
 
 #split trian/test set and do standardization
 train_features,test_features,train_labels,test_labels = train_test_split(X, y, test_size=0.2, random_state=42)
-train_features[numeric_features]=train_features[numeric_features].apply(
-    lambda x: (x-x.mean())/x.std()
-)
-test_features[numeric_features]=test_features[numeric_features].apply(
-    lambda x: (x-x.mean())/x.std()
-)
+train_mean = train_features[numeric_features].mean()
+train_std = train_features[numeric_features].std()
+
+train_features[numeric_features] = (
+    train_features[numeric_features] - train_mean
+) / train_std
+
+test_features[numeric_features] = (
+    test_features[numeric_features] - train_mean
+) / train_std
+
 train_features[categorical_features]=train_features[categorical_features].astype(float)
 test_features[categorical_features]=test_features[categorical_features].astype(float)
 print(train_features.shape)
