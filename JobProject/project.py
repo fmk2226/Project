@@ -1,10 +1,11 @@
 import pandas as pd
-from IPython import display
 import torch
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 from d2l import torch as d2l
 from sklearn.model_selection import train_test_split
+from Trainer import Trainer
+from IPython import display
 
 display.display = lambda *args, **kwargs: None
 display.clear_output = lambda *args, **kwargs: None
@@ -73,8 +74,10 @@ def kaiming_init(m):
 
 net.apply(kaiming_init)
 lr,num_epochs=0.01,56
-d2l.train_ch6(net,train_iter,test_iter,num_epochs,lr,d2l.try_gpu())
-d2l.plt.show()
+trainer=Trainer(net,train_iter,test_iter,num_epochs,lr,d2l.try_gpu(),loss=nn.CrossEntropyLoss())
+trainer.train()
+#d2l.train_ch6(net,train_iter,test_iter,num_epochs,lr,d2l.try_gpu())
+#d2l.plt.show()
 
 
 
