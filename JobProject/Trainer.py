@@ -1,5 +1,8 @@
+from cProfile import label
+
 import torch
 from torch import nn
+import matplotlib.pyplot as plt
 class Trainer:
     def __init__(self,net,train_iter,test_iter,num_epochs,lr,device=None,optimizer=torch.optim.SGD,loss=None):
         self.net = net
@@ -82,3 +85,25 @@ class Trainer:
         avg_loss=metric_loss/metric_total
         avg_acc=metric_correct/metric_total
         return avg_loss,avg_acc
+    def plot_history(self):
+        epochs=range(1,len(self.history['train_loss'])+1)
+        #epochs=range(1,self.num_epochs+1)
+        plt.figure(figsize=(8,5))
+        plt.plot(epochs,self.history['train_acc'],label='train_acc')
+        plt.plot(epochs,self.history['test_acc'],label='test_acc')
+        plt.xlabel('Epochs')
+        plt.ylabel('Accuracy')
+        plt.legend()
+        plt.title('Accuracy vs Epochs')
+        plt.grid(True)
+        plt.show()
+
+        plt.figure(figsize=(8,5))
+        plt.plot(epochs,self.history['train_loss'],label='train_loss')
+        plt.plot(epochs,self.history['test_loss'],label='test_loss')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.legend()
+        plt.title('Loss vs Epochs')
+        plt.grid(True)
+        plt.show()
