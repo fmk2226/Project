@@ -12,7 +12,7 @@ from IPython import display
 display.display = lambda *args, **kwargs: None
 display.clear_output = lambda *args, **kwargs: None
 
-df=pd.read_csv('H:/deeplearning/Project/JobProject/data/job_search_platform_efficacy_100k.csv')
+df=pd.read_csv('../data/job/job_search_platform_efficacy_100k.csv')
 drop_col=['Student_ID','Time_to_Offer_Days','Offer_Salary','Company_Size_Offered','Accepted_Offer','Role_Relevance']
 df_clean=df.drop(drop_col,axis=1)
 
