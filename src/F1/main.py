@@ -1,9 +1,9 @@
 import pandas as pd
 import torch
 from torch import nn
-from torch.utils.data import TensorDataset, DataLoader
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from model import MLP
 from Trainer import Trainer
 from IPython import display
 
@@ -18,7 +18,6 @@ drop_cols=['id']
 df_train_clean=df_train.drop(drop_cols,axis=1)
 df_test_clean=df_test.drop(drop_cols,axis=1)
 del df_train
-del df_test
 df_train_copy=df_train_clean.copy() #make a copy of dataframe before removing outliers
 df_test_copy=df_test_clean.copy()
 
@@ -52,15 +51,13 @@ X_train=pd.concat([stnd.fit_transform(X_train[numeric_features]),X_train[categor
 X_test=pd.concat([stnd.transform(X_test[numeric_features]),X_test[categorical_features].astype(float)],axis=1)
 y_train=df_train_clean['PitNextLap']
 
-#Hyperparameter
-batch_size,lr,num_epochs=128,0.01,32
+#HYPERPARAMETER
+k,batch_size,lr,num_epochs,weight_decay=10,64,0.01,64,1e-3
 
-#Transfer to Data_loader instance
-X_train=torch.tensor(X_train.values,dtype=torch.float32)
-X_test=torch.tensor(X_test.values,dtype=torch.float32)
-y_train=torch.tensor(y_train.values,dtype=torch.float32)
-train_iter=DataLoader(
-    TensorDataset(X_train,y_train),
-    batch_size=batch_size,
-    shuffle=True,
-)
+#MODEL
+net=MLP(X_train.shape[1],64,64,2)
+net.apply(MLP.kaiming_init)
+trainer=Trainer(net,X_train,y_train,X_test,batch_size,lr,num_epochs,weight_decay)
+trainer.k_fold_cross_validation(k)
+trainer.plot()
+trainer.predict(df_test_copy)
