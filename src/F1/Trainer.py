@@ -2,14 +2,18 @@ import pandas as pd
 import torch
 from torch import nn
 import matplotlib.pyplot as plt
-from torch.utils.data import TensorDataset, DataLoader
 import copy
 class Trainer:
     def __init__(self,net,train_feature,train_label,test_feature,batch_size,lr,num_epochs,weight_decay,optimizer=None,loss=None,device=None):
         self.net=net
-        self.train_feature=torch.tensor(train_feature.values,dtype=torch.float32)
-        self.train_label=torch.tensor(train_label.values,dtype=torch.long).reshape(-1)
-        self.test_feature=torch.tensor(test_feature.values,dtype=torch.float32)
+        if device is None:
+            self.device=torch.device('cuda')
+        else:
+            self.device=device
+        self.net.to(self.device)
+        self.train_feature=torch.tensor(train_feature.values,dtype=torch.float32,device=self.device)
+        self.train_label=torch.tensor(train_label.values,dtype=torch.long,device=self.device).reshape(-1)
+        self.test_feature=torch.tensor(test_feature.values,dtype=torch.float32,device=self.device)
         self.num_epochs=num_epochs
         self.batch_size=batch_size
         self.lr=lr
@@ -22,11 +26,6 @@ class Trainer:
             self.loss=nn.CrossEntropyLoss()
         else:
             self.loss=loss
-        if device is None:
-            self.device=torch.device('cuda')
-        else:
-            self.device=device
-        self.net.to(self.device)
         self.history = {
             'train_loss': [],
             'train_acc': [],
@@ -41,9 +40,31 @@ class Trainer:
         self.initial_model_state=copy.deepcopy(self.net.state_dict())
         self.optimizer_class=torch.optim.SGD if optimizer is None else optimizer
         
+    def batch_iter(self,X,y=None,shuffle=False):
+        n=X.shape[0]
+        if shuffle:
+            indices=torch.randperm(n,device=X.device)
+            for start in range(0,n,self.batch_size):
+                batch_idx=indices[start:start+self.batch_size]
+                X_batch=X.index_select(0,batch_idx)
+                if y is None:
+                    yield X_batch
+                else:
+                    y_batch=y.index_select(0,batch_idx)
+                    yield X_batch,y_batch
+        else:
+            for start in range(0,n,self.batch_size):
+                end=min(start+self.batch_size,n)
+                X_batch=X[start:end]
+                if y is None:
+                    yield X_batch
+                else:
+                    y_batch=y[start:end]
+                    yield X_batch,y_batch
+        
     def accuracy(self,y_hat,y):
         y_hat=y_hat.argmax(dim=1)
-        count=(y_hat.type(y.dtype)==y).sum().item()
+        count=(y_hat.type(y.dtype)==y).sum()
         return count
 
     def train(self,X_train,y_train,X_valid=None,y_valid=None):
@@ -55,26 +76,13 @@ class Trainer:
             'test_loss': [],
             'test_acc': []
         }
-        train_iter=DataLoader(
-            TensorDataset(X_train,y_train),
-            batch_size=self.batch_size,
-            shuffle=True
-        )
-        if X_valid is not None:
-            val_iter=DataLoader(
-                TensorDataset(X_valid,y_valid),
-                batch_size=self.batch_size,
-                shuffle=False
-            )
         train_loss_record,train_acc_record,val_loss_record,val_acc_record=[],[],[],[]
         for epoch in range(self.num_epochs):
             self.net.train()
             metric_loss=0.0
             metric_acc=0
             metric_total=0
-            for i,(X,y) in enumerate(train_iter):
-                X=X.to(self.device)
-                y=y.to(self.device)
+            for X,y in self.batch_iter(X_train,y_train,shuffle=True):
                 self.optimizer.zero_grad()
                 y_hat=self.net(X)
                 l=self.loss(y_hat,y)
@@ -82,18 +90,13 @@ class Trainer:
                 self.optimizer.step()
                 with torch.no_grad():
                     batch=X.shape[0]
-                    metric_loss+=l.item()*batch
+                    metric_loss+=l.detach()*batch
                     metric_acc+=self.accuracy(y_hat,y)
                     metric_total+=batch
-                train_loss=metric_loss/metric_total
-                train_acc=metric_acc/metric_total
+            train_loss=(metric_loss/metric_total).item()
+            train_acc=(metric_acc/metric_total).item()
             if X_valid is not None:
-                val_loss,val_acc=self.evaluate(val_iter)
-                #save the best model
-                if val_acc>self.best_score:
-                    self.best_score=val_acc
-                    self.best_epoch=epoch
-                    self.best_model_state=copy.deepcopy(self.net.state_dict())
+                val_loss,val_acc=self.evaluate(X_valid,y_valid)
                 val_loss_record.append(val_loss)
                 val_acc_record.append(val_acc)
                 self.history['val_loss'].append(val_loss)
@@ -107,26 +110,25 @@ class Trainer:
             train_acc_record.append(train_acc)
             self.history['train_loss'].append(train_loss)
             self.history['train_acc'].append(train_acc)
-            
-        return train_loss_record,train_acc_record,val_loss_record,val_acc_record
+        if X_valid is not None:
+            return train_loss_record,train_acc_record,val_loss_record,val_acc_record
+        return train_loss_record,train_acc_record
                 
-    def evaluate(self,data_iter):
+    def evaluate(self,X_valid,y_valid):
         self.net.eval()
         metric_loss=0.0
         metric_acc=0
         metric_total=0
         with torch.no_grad():
-            for X,y in data_iter:
-                X=X.to(self.device)
-                y=y.to(self.device)
+            for X,y in self.batch_iter(X_valid,y_valid,shuffle=False):
                 y_hat=self.net(X)
                 l=self.loss(y_hat,y)
                 batch=X.shape[0]
-                metric_loss+=l.item()*batch
+                metric_loss+=l.detach()*batch
                 metric_acc+=self.accuracy(y_hat,y)
                 metric_total+=batch
-            test_loss=metric_loss/metric_total
-            test_acc=metric_acc/metric_total
+            test_loss=(metric_loss/metric_total).item()
+            test_acc=(metric_acc/metric_total).item()
         return test_loss,test_acc
     
     def get_k_fold_data(self,k,i):
@@ -209,7 +211,7 @@ class Trainer:
         self.best_epoch=0
         self.best_model_state=None
         #train on whole dataset
-        self.train(self.train_feature,self.train_label)
+        train_loss,train_acc=self.train(self.train_feature,self.train_label)
         net=self.best_estimator()
         net.eval()
         with torch.no_grad():
