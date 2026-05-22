@@ -27,11 +27,13 @@ class Trainer:
         else:
             self.device=device
         self.net.to(self.device)
-        self.history={
-            'train_loss':[],
-            'train_acc':[],
+        self.history = {
+            'train_loss': [],
+            'train_acc': [],
             'val_loss':[],
             'val_acc':[],
+            'test_loss': [],
+            'test_acc': []
         }
         self.best_score=0.0
         self.best_epoch=0
@@ -44,7 +46,7 @@ class Trainer:
         count=(y_hat.type(y.dtype)==y).sum().item()
         return count
 
-    def train(self,X_train,y_train,X_valid,y_valid):
+    def train(self,X_train,y_train,X_valid=None,y_valid=None):
         self.history = {
             'train_loss': [],
             'train_acc': [],
@@ -58,11 +60,12 @@ class Trainer:
             batch_size=self.batch_size,
             shuffle=True
         )
-        val_iter=DataLoader(
-            TensorDataset(X_valid,y_valid),
-            batch_size=self.batch_size,
-            shuffle=False
-        )
+        if X_valid is not None:
+            val_iter=DataLoader(
+                TensorDataset(X_valid,y_valid),
+                batch_size=self.batch_size,
+                shuffle=False
+            )
         train_loss_record,train_acc_record,val_loss_record,val_acc_record=[],[],[],[]
         for epoch in range(self.num_epochs):
             self.net.train()
@@ -84,20 +87,27 @@ class Trainer:
                     metric_total+=batch
                 train_loss=metric_loss/metric_total
                 train_acc=metric_acc/metric_total
-            val_loss,val_acc=self.evaluate(val_iter)
-            #save the best model
-            if val_acc>self.best_score:
-                self.best_score=val_acc
-                self.best_epoch=epoch
-                self.best_model_state=copy.deepcopy(self.net.state_dict())
+            if X_valid is not None:
+                val_loss,val_acc=self.evaluate(val_iter)
+                #save the best model
+                if val_acc>self.best_score:
+                    self.best_score=val_acc
+                    self.best_epoch=epoch
+                    self.best_model_state=copy.deepcopy(self.net.state_dict())
+                val_loss_record.append(val_loss)
+                val_acc_record.append(val_acc)
+                self.history['val_loss'].append(val_loss)
+                self.history['val_acc'].append(val_acc)
+            else:
+                if train_acc>self.best_score:
+                    self.best_score=train_acc
+                    self.best_epoch=epoch
+                    self.best_model_state=copy.deepcopy(self.net.state_dict())
             train_loss_record.append(train_loss)
             train_acc_record.append(train_acc)
-            val_loss_record.append(val_loss)
-            val_acc_record.append(val_acc)
             self.history['train_loss'].append(train_loss)
             self.history['train_acc'].append(train_acc)
-            self.history['val_loss'].append(val_loss)
-            self.history['val_acc'].append(val_acc)
+            
         return train_loss_record,train_acc_record,val_loss_record,val_acc_record
                 
     def evaluate(self,data_iter):
@@ -183,9 +193,17 @@ class Trainer:
         plt.show()
 
     def predict(self,test_data):
+        self.net.load_state_dict(copy.deepcopy(self.initial_model_state))
+        self.optimizer=self.optimizer_class(self.net.parameters(),lr=self.lr,weight_decay=self.weight_decay)
+        self.best_score=0.0
+        self.best_epoch=0
+        self.best_model_state=None
+        #train on whole dataset
+        self.train(self.train_feature,self.train_label)
         net=self.best_estimator()
         net.eval()
-        prediction=net(self.test_feature.to(self.device)).argmax(dim=1).detach().cpu().numpy()
+        with torch.no_grad():
+            prediction=net(self.test_feature.to(self.device)).argmax(dim=1).detach().cpu().numpy()
         test_data['PitNextLap']=pd.Series(prediction.reshape(-1))
         submission=pd.concat([test_data['id'],test_data['PitNextLap']],axis=1)
         submission.to_csv('submission.csv', index=False)
