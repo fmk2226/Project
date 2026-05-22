@@ -101,9 +101,8 @@ class Trainer:
                 val_acc_record.append(val_acc)
                 self.history['val_loss'].append(val_loss)
                 self.history['val_acc'].append(val_acc)
-            else:
-                if train_acc>self.best_score:
-                    self.best_score=train_acc
+                if val_acc>self.best_score:
+                    self.best_score=val_acc
                     self.best_epoch=epoch
                     self.best_model_state=copy.deepcopy(self.net.state_dict())
             train_loss_record.append(train_loss)
@@ -162,6 +161,9 @@ class Trainer:
             val_acc_sum+=val_acc[-1]
             print(f'fold {i + 1}, train acc {float(train_acc[-1]):.4f}, '
                   f'validation acc {float(val_acc[-1]):f}')
+        print(f'Best validation Accuray: {self.best_score:.4f}, '
+              f'Epoch : {self.best_epoch}'
+              )
         return train_acc_sum/k,val_acc_sum/k
     
     def best_estimator(self):
@@ -207,9 +209,6 @@ class Trainer:
         }
         self.net.load_state_dict(copy.deepcopy(self.initial_model_state))
         self.optimizer=self.optimizer_class(self.net.parameters(),lr=self.lr,weight_decay=self.weight_decay)
-        self.best_score=0.0
-        self.best_epoch=0
-        self.best_model_state=None
         #train on whole dataset
         train_loss,train_acc=self.train(self.train_feature,self.train_label)
         net=self.best_estimator()
