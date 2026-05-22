@@ -198,7 +198,7 @@ class Trainer:
         plt.grid(True)
         plt.show()
 
-    def predict(self,test_data):
+    def predict(self,test_data,load_model=False):
         self.history = {
             'train_loss': [],
             'train_acc': [],
@@ -207,14 +207,16 @@ class Trainer:
             'test_loss': [],
             'test_acc': []
         }
-        self.net.load_state_dict(copy.deepcopy(self.initial_model_state))
-        self.optimizer=self.optimizer_class(self.net.parameters(),lr=self.lr,weight_decay=self.weight_decay)
-        #train on whole dataset
-        train_loss,train_acc=self.train(self.train_feature,self.train_label)
-        net=self.best_estimator()
+        if load_model:
+            net=self.best_estimator()
+        else:
+            self.net.load_state_dict(copy.deepcopy(self.initial_model_state))
+            self.optimizer=self.optimizer_class(self.net.parameters(),lr=self.lr,weight_decay=self.weight_decay)
+            train_loss,train_acc=self.train(self.train_feature,self.train_label)
+            net=self.net
         net.eval()
         with torch.no_grad():
-            prediction=net(self.test_feature.to(self.device)).argmax(dim=1).detach().cpu().numpy()
+            prediction=net(self.test_feature).argmax(dim=1).detach().cpu().numpy()
         test_data['PitNextLap']=pd.Series(prediction.reshape(-1))
         submission=pd.concat([test_data['id'],test_data['PitNextLap']],axis=1)
         submission.to_csv('submission.csv', index=False)
