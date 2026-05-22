@@ -34,8 +34,10 @@ df_train_clean=df_train_clean[mask]
 df_test_clean[abn_col]=df_test_clean[abn_col].clip(lower=lower_bound,upper=upper_bound,axis=1)
 
 #PREPROCESSING
-n_train=df_train_clean.shape[0]
-all_features=pd.concat([df_train_clean.iloc[:,:-1],df_test_clean],axis=0)
+train_used=df_train_clean
+test_used=df_test_clean
+n_train=train_used.shape[0]
+all_features=pd.concat([train_used.iloc[:,:-1],test_used],axis=0)
 
 #one-hot encoding
 all_features=pd.get_dummies(all_features,dtype=bool)
@@ -49,15 +51,16 @@ del all_features
 stnd=StandardScaler().set_output(transform="pandas")
 X_train=pd.concat([stnd.fit_transform(X_train[numeric_features]),X_train[categorical_features].astype(float)],axis=1)
 X_test=pd.concat([stnd.transform(X_test[numeric_features]),X_test[categorical_features].astype(float)],axis=1)
-y_train=df_train_clean['PitNextLap']
+y_train=train_used['PitNextLap']
 
 #HYPERPARAMETER
-k,batch_size,lr,num_epochs,weight_decay=10,64,0.01,64,1e-3
+k,batch_size,lr,num_epochs,weight_decay=10,8192,1e-3,20,1e-4
 
 #MODEL
-net=MLP(X_train.shape[1],64,64,2)
+net=MLP(X_train.shape[1],512,256,2)
 net.apply(MLP.kaiming_init)
-trainer=Trainer(net,X_train,y_train,X_test,batch_size,lr,num_epochs,weight_decay)
+trainer=Trainer(net,X_train,y_train,X_test,batch_size,lr,num_epochs,weight_decay,optimizer=torch.optim.AdamW)
 trainer.k_fold_cross_validation(k)
 trainer.plot()
-trainer.predict(df_test_copy)
+trainer.predict(df_test,load_model=True)
+trainer.plot(val=False)
