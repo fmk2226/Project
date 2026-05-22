@@ -170,11 +170,12 @@ class Trainer:
             self.net.to(self.device)
         return self.net
 
-    def plot(self):
+    def plot(self,val=True):
         epochs=range(1,len(self.history['train_loss'])+1)
         plt.figure(figsize=(8,5))
         plt.plot(epochs,self.history['train_acc'],label='Train ACC')
-        plt.plot(epochs,self.history['val_acc'],label='Val ACC')
+        if val==True:
+            plt.plot(epochs,self.history['val_acc'],label='Val ACC')
         plt.xlabel('Epochs')
         plt.ylabel('ACC')
         plt.legend()
@@ -184,7 +185,8 @@ class Trainer:
 
         plt.figure(figsize=(8,5))
         plt.plot(epochs,self.history['train_loss'],label='Train Loss')
-        plt.plot(epochs,self.history['val_loss'],label='Val Loss')
+        if val==True:
+            plt.plot(epochs,self.history['val_loss'],label='Val Loss')
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
         plt.legend()
