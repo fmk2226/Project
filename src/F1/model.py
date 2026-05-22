@@ -10,5 +10,16 @@ class MLP(nn.Module):
     def forward(self,x):
         return self.net(x)
     
-    def kaiming_init():
-        pass
+    @staticmethod
+    def kaiming_init(m):
+        if isinstance(m,nn.Linear):
+            nn.init.kaiming_uniform_(m.weight,nonlinearity='relu')
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+    @staticmethod
+    def xavier_init(m):
+        if isinstance(m,nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+
