@@ -195,6 +195,14 @@ class Trainer:
         plt.show()
 
     def predict(self,test_data):
+        self.history = {
+            'train_loss': [],
+            'train_acc': [],
+            'val_loss':[],
+            'val_acc':[],
+            'test_loss': [],
+            'test_acc': []
+        }
         self.net.load_state_dict(copy.deepcopy(self.initial_model_state))
         self.optimizer=self.optimizer_class(self.net.parameters(),lr=self.lr,weight_decay=self.weight_decay)
         self.best_score=0.0
