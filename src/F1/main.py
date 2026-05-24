@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from model import MLP
+import model
 from Trainer import Trainer
 from IPython import display
 
@@ -39,6 +39,14 @@ test_used=df_test_clean
 n_train=train_used.shape[0]
 all_features=pd.concat([train_used.iloc[:,:-1],test_used],axis=0)
 
+#feature engineering
+all_features['TyreLife_LapNumber']=all_features['TyreLife']/all_features['LapNumber']
+all_features['TyreLife_Stint']=all_features['TyreLife']/all_features['Stint']
+all_features['TyreLife_RaceProgress']=all_features['TyreLife']*all_features['RaceProgress']
+all_features['Stint_RaceProgress']=all_features['Stint']*all_features['RaceProgress']
+all_features['Position_Position_Change']=all_features['Position']*all_features['Position_Change']
+all_features['LapTime_Delta_Cumulative_Degradation']=all_features['LapTime_Delta']*all_features['Cumulative_Degradation']
+
 #one-hot encoding
 all_features=pd.get_dummies(all_features,dtype=bool)
 numeric_features=all_features.select_dtypes(exclude=[bool]).columns
@@ -54,13 +62,15 @@ X_test=pd.concat([stnd.transform(X_test[numeric_features]),X_test[categorical_fe
 y_train=train_used['PitNextLap']
 
 #HYPERPARAMETER
-k,batch_size,lr,num_epochs,weight_decay=10,8192,1e-3,20,1e-4
+k,batch_size,lr,num_epochs,weight_decay=5,4096,1e-3,14,1e-5
 
 #MODEL
-net=MLP(X_train.shape[1],512,256,2)
-net.apply(MLP.kaiming_init)
-trainer=Trainer(net,X_train,y_train,X_test,batch_size,lr,num_epochs,weight_decay,optimizer=torch.optim.AdamW)
+net1=model.MLP(X_train.shape[1],512,256,2)
+net1.apply(model.kaiming_init)
+net2=model.ResidualRegressor(X_train.shape[1],128,2,0.2)
+net2.apply(model.kaiming_init)
+trainer=Trainer(net2,X_train,y_train,X_test,batch_size,lr,num_epochs,weight_decay,optimizer=torch.optim.AdamW)
 trainer.k_fold_cross_validation(k)
 trainer.plot()
-trainer.predict(df_test,load_model=True)
-trainer.plot(val=False)
+#trainer.predict(df_test,load_model=False)
+#trainer.plot(val=False)
