@@ -61,16 +61,20 @@ X_train=pd.concat([stnd.fit_transform(X_train[numeric_features]),X_train[categor
 X_test=pd.concat([stnd.transform(X_test[numeric_features]),X_test[categorical_features].astype(float)],axis=1)
 y_train=train_used['PitNextLap']
 
+class_counts = y_train.value_counts().sort_index()
+class_weights = len(y_train) / (len(class_counts) * class_counts)
+class_weights = torch.tensor(class_weights.values, dtype=torch.float32)
+
 #HYPERPARAMETER
-k,batch_size,lr,num_epochs,weight_decay=5,4096,1e-3,14,1e-5
+k,batch_size,lr,num_epochs,weight_decay=5,1024,1e-3,16,1e-3
 
 #MODEL
 net1=model.MLP(X_train.shape[1],512,256,2)
 net1.apply(model.kaiming_init)
 net2=model.ResidualRegressor(X_train.shape[1],128,2,0.2)
 net2.apply(model.kaiming_init)
-trainer=Trainer(net2,X_train,y_train,X_test,batch_size,lr,num_epochs,weight_decay,optimizer=torch.optim.AdamW)
-trainer.k_fold_cross_validation(k)
-trainer.plot()
-#trainer.predict(df_test,load_model=False)
-#trainer.plot(val=False)
+trainer=Trainer(net2,X_train,y_train,X_test,batch_size,lr,num_epochs,weight_decay,optimizer=torch.optim.AdamW,class_weights=class_weights)
+#trainer.k_fold_cross_validation(k)
+#trainer.plot()
+trainer.predict(df_test,load_model=False)
+trainer.plot(val=False)

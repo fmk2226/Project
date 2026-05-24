@@ -4,7 +4,7 @@ from torch import nn
 import matplotlib.pyplot as plt
 import copy
 class Trainer:
-    def __init__(self,net,train_feature,train_label,test_feature,batch_size,lr,num_epochs,weight_decay,optimizer=None,loss=None,device=None):
+    def __init__(self,net,train_feature,train_label,test_feature,batch_size,lr,num_epochs,weight_decay,optimizer=None,loss=None,device=None,class_weights=None):
         self.net=net
         if device is None:
             self.device=torch.device('cuda')
@@ -23,9 +23,10 @@ class Trainer:
         else:
             self.optimizer=optimizer(self.net.parameters(),lr=self.lr,weight_decay=self.weight_decay)
         if loss is None:
-            self.loss=nn.CrossEntropyLoss()
+            self.loss=nn.CrossEntropyLoss(weight=class_weights)
         else:
             self.loss=loss
+        self.loss.to(self.device)
         self.history = {
             'train_loss': [],
             'train_acc': [],
