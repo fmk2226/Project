@@ -47,6 +47,20 @@ all_features['Stint_RaceProgress']=all_features['Stint']*all_features['RaceProgr
 all_features['Position_Position_Change']=all_features['Position']*all_features['Position_Change']
 all_features['LapTime_Delta_Cumulative_Degradation']=all_features['LapTime_Delta']*all_features['Cumulative_Degradation']
 
+#label encoding
+cat=all_features.select_dtypes(include=['object','category']).columns.tolist()
+for c in cat:
+    all_features[c+'_le']=pd.factorize(all_features[c],sort=True)[0].astype('int32')
+
+#Combination of categorical features
+cat_le=[c+'_le' for c in cat]
+for i,c1 in enumerate(cat_le[:-1]):
+    for j,c2 in enumerate(cat_le[i+1:]):
+        n=f'{c1}_{c2}'
+        m2=all_features[c2].max()+1
+        all_features[n]=((all_features[c1]+1)*(m2+1)+(all_features[c2]+1)).astype('int32')
+all_features=all_features.drop(columns=cat_le) #drop label encoded categorical features
+
 #one-hot encoding
 all_features=pd.get_dummies(all_features,dtype=bool)
 numeric_features=all_features.select_dtypes(exclude=[bool]).columns
@@ -74,7 +88,7 @@ net1.apply(model.kaiming_init)
 net2=model.ResidualRegressor(X_train.shape[1],128,2,0.2)
 net2.apply(model.kaiming_init)
 trainer=Trainer(net2,X_train,y_train,X_test,batch_size,lr,num_epochs,weight_decay,optimizer=torch.optim.AdamW,class_weights=class_weights)
-#trainer.k_fold_cross_validation(k)
-#trainer.plot()
-trainer.predict(df_test,load_model=False)
-trainer.plot(val=False)
+trainer.k_fold_cross_validation(k)
+trainer.plot()
+#trainer.predict(df_test,load_model=False)
+#trainer.plot(val=False)
