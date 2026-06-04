@@ -6,12 +6,14 @@ from sklearn.preprocessing import StandardScaler
 import model
 from Trainer import Trainer
 from IPython import display
+from pathlib import Path
 
 display.display = lambda *args, **kwargs: None
 display.clear_output = lambda *args, **kwargs: None
 
-df_train=pd.read_csv('../../data/F1/train.csv')
-df_test=pd.read_csv('../../data/F1/test.csv')
+BASE_DIR = Path(__file__).resolve().parents[2]
+df_train = pd.read_csv(BASE_DIR / 'data' / 'F1' / 'train.csv')
+df_test = pd.read_csv(BASE_DIR / 'data' / 'F1' / 'test.csv')
 
 #DATA CLEANING
 drop_cols=['id']
