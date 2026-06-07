@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import torch
 from torch import nn
 from sklearn.model_selection import train_test_split
@@ -7,6 +8,13 @@ import model
 from Trainer import Trainer
 from IPython import display
 from pathlib import Path
+import random
+
+def RandomSeed(seed:int):
+    random.seed(seed)
+    np.random.seed(seed=seed)
+    torch.manual_seed(seed=seed)
+RandomSeed(42)
 
 display.display = lambda *args, **kwargs: None
 display.clear_output = lambda *args, **kwargs: None
@@ -76,7 +84,9 @@ stnd=StandardScaler().set_output(transform="pandas")
 X_train=pd.concat([stnd.fit_transform(X_train[numeric_features]),X_train[categorical_features].astype(float)],axis=1)
 X_test=pd.concat([stnd.transform(X_test[numeric_features]),X_test[categorical_features].astype(float)],axis=1)
 y_train=train_used['PitNextLap']
+del train_used,test_used
 
+#calculate class weight
 class_counts = y_train.value_counts().sort_index()
 class_weights = len(y_train) / (len(class_counts) * class_counts)
 class_weights = torch.tensor(class_weights.values, dtype=torch.float32)
