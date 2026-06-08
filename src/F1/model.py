@@ -35,7 +35,7 @@ class ResidualBlock(nn.Module):
         residual=x
         out=self.dropout(self.activation(self.Linear1(x)))
         out=self.Linear2(out)
-        out=out+residual
+        out=0.7*out+0.3*residual
         out=self.batchnorm(out)
         out=self.activation(out)
         return out
