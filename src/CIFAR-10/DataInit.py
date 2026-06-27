@@ -28,7 +28,9 @@ def read_csv_labels(fname):
 def copyfile(filename,target_dir):
     """copy file to target path"""
     os.makedirs(target_dir,exist_ok=True)
-    shutil.copy(filename,target_dir)
+    target_path=os.path.join(target_dir,os.path.basename(filename))
+    if not os.path.exists(target_path):
+        shutil.copy(filename,target_dir)
 
 def reorg_train_valid(data_dir,labels,valid_ratio):
     """split validation set from training set"""
