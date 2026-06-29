@@ -30,13 +30,13 @@ def resnet_block(input_channels,num_channels,num_residuals,first_block=False):
             blk.append(Residual(num_channels,num_channels))
     return blk
 
-def resnet18():
+def resnet18(num_classes,channels):
     #input is 32*32
-    b1=nn.Sequential(nn.Conv2d(3,64,kernel_size=3,padding=1,stride=1),
+    b1=nn.Sequential(nn.Conv2d(channels,64,kernel_size=3,padding=1,stride=1),
                  nn.BatchNorm2d(64),nn.ReLU()) #output 32*32
     b2=nn.Sequential(*resnet_block(64,64,2,first_block=True)) #32*32
     b3=nn.Sequential(*resnet_block(64,128,2)) #16*16
     b4=nn.Sequential(*resnet_block(128,256,2)) #8*8
     b5=nn.Sequential(*resnet_block(256,512,2)) #4*4
-    net=nn.Sequential(b1,b2,b3,b4,b5,nn.AdaptiveAvgPool2d((1,1)),nn.Flatten(),nn.Linear(512,10))
+    net=nn.Sequential(b1,b2,b3,b4,b5,nn.AdaptiveAvgPool2d((1,1)),nn.Flatten(),nn.Linear(512,num_classes))
     return net
