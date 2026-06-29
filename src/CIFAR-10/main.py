@@ -7,12 +7,13 @@ import random
 from pathlib import Path
 from IPython import display
 import DataInit
-from model import resnet18
+from model import resnet18,xavier_init
 from Trainer import Trainer
 
 def RandomSeed(seed:int):
     random.seed(seed)
     torch.manual_seed(seed=seed)
+    torch.cuda.manual_seed_all(seed)
 
 RandomSeed(42)
 display.display = lambda *args, **kwargs: None
@@ -27,6 +28,7 @@ lr,lr_period,lr_decay=5e-4,4,0.9
 num_epochs=20
 weight_decay=5e-4
 net=resnet18(10,3)
+net.apply(xavier_init)
 
 #initialize dataset to a readable form for torchvision
 data_dir=DataInit.load_data(BASE_DIR,demo=demo)

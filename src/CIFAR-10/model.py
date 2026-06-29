@@ -40,3 +40,9 @@ def resnet18(num_classes,channels):
     b5=nn.Sequential(*resnet_block(256,512,2)) #4*4
     net=nn.Sequential(b1,b2,b3,b4,b5,nn.AdaptiveAvgPool2d((1,1)),nn.Flatten(),nn.Linear(512,num_classes))
     return net
+
+def xavier_init(m):
+    if type(m) in [nn.Conv2d,nn.Linear]:
+        nn.init.xavier_uniform_(m.weight)
+        if m.bias is not None:
+            nn.init.zeros_(m.bias)
