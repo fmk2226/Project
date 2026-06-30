@@ -1,5 +1,6 @@
 from torch import nn
 from torch.nn import functional as F
+import torchvision
 
 class Residual(nn.Module):
     def __init__(self,input_channels,num_channels,use_1x1conv=False,strides=1):
@@ -39,6 +40,7 @@ def resnet18(num_classes,channels):
     b4=nn.Sequential(*resnet_block(128,256,2)) #8*8
     b5=nn.Sequential(*resnet_block(256,512,2)) #4*4
     net=nn.Sequential(b1,b2,b3,b4,b5,nn.AdaptiveAvgPool2d((1,1)),nn.Flatten(),nn.Linear(512,num_classes))
+    net.apply(xavier_init)
     return net
 
 def xavier_init(m):
@@ -46,3 +48,9 @@ def xavier_init(m):
         nn.init.xavier_uniform_(m.weight)
         if m.bias is not None:
             nn.init.zeros_(m.bias)
+
+def pretrained_resnet18():
+    pretrained_net=torchvision.models.resnet18(pretrained=True)
+    pretrained_net.fc=nn.Linear(pretrained_net.fc.in_features,10)
+    nn.init.xavier_uniform_(pretrained_net.fc.weight)
+    return pretrained_net

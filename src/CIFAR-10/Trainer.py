@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 class Trainer():
     def __init__(self,net,train_iter,train_valid_iter,valid_iter,test_iter,
                  batch_size,lr,lr_period,lr_decay,num_epochs,weight_decay,optimizer=None,
-                 loss=None,devices=None,pretrained=False):
+                 loss=None,devices=None,pretrained=True):
         if devices is None:
             self.devices = [torch.device(f"cuda:{i}") for i in range(torch.cuda.device_count())]
         else:
@@ -22,11 +22,12 @@ class Trainer():
         self.lr_decay=lr_decay
         self.num_epochs=num_epochs
         self.weight_decay=weight_decay
+        self.pretrained=pretrained
         if optimizer is None:
-            self.optimizer=torch.optim.AdamW(self.net.parameters(),lr=self.lr,weight_decay=self.weight_decay)
+            self.optimizer=torch.optim.AdamW
         else:
-            self.optimizer=optimizer(self.net.parameters(),lr=self.lr,weight_decay=self.weight_decay)
-        self.scheduler=torch.optim.lr_scheduler.StepLR(self.optimizer,self.lr_period,self.lr_decay)
+            self.optimizer=optimizer
+        self.scheduler=None
         if loss is None:
             self.loss=nn.CrossEntropyLoss()
         else:
@@ -48,7 +49,19 @@ class Trainer():
         count=(y_hat.type(y.dtype)==y).sum()
         return count
 
+    def init_optimizer(self):
+        if self.pretrained==True:
+            param_1x=[param for name,param in self.net.named_parameters()
+                      if name not in ['fc.weight','fc.bias']]
+            self.optimizer=self.optimizer([{'params':param_1x},
+                                           {'params':self.net.fc.parameters(),'lr':self.lr*10}],
+                                           lr=self.lr,weight_decay=self.weight_decay)
+        else:
+            self.optimizer=self.optimizer(self.net.parameters(),lr=self.lr,weight_decay=self.weight_decay)
+        self.scheduler=torch.optim.lr_scheduler.StepLR(self.optimizer,self.lr_period,self.lr_decay)
+
     def train_epoch(self,train_iter,valid_iter=None):
+        self.init_optimizer()
         for epoch in range(self.num_epochs):
             self.net.train()
             metric_loss=0.0
