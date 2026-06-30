@@ -55,9 +55,9 @@ class Trainer():
             metric_acc=0
             metric_total=0
             for i,(X,y) in enumerate(train_iter):
-                X=X.to(self.devices[0])
-                y=y.to(self.devices[0])
-                self.optimizer.zero_grad()
+                X=X.to(self.devices[0],non_blocking=True)
+                y=y.to(self.devices[0],non_blocking=True)
+                self.optimizer.zero_grad(set_to_none=True)
                 y_hat=self.net(X)
                 l=self.loss(y_hat,y)
                 l.backward()
@@ -89,8 +89,8 @@ class Trainer():
         metric_total=0
         with torch.no_grad():
             for i,(X,y) in enumerate(valid_iter):
-                X=X.to(self.devices[0])
-                y=y.to(self.devices[0])
+                X=X.to(self.devices[0],non_blocking=True)
+                y=y.to(self.devices[0],non_blocking=True)
                 y_hat=self.net(X)
                 l=self.loss(y_hat,y)
                 batch=X.shape[0]
