@@ -78,6 +78,8 @@ def main():
                     pretrained=pretrained)
     trainer.train()
     trainer.plot()
+    #trainer.predict(test_ds,train_valid_ds)
+    #trainer.plot(val=False)
 
 if __name__=='__main__':
     main()

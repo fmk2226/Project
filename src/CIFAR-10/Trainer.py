@@ -1,3 +1,4 @@
+import pandas as pd
 import torch
 from torch import nn
 import matplotlib.pyplot as plt
@@ -82,17 +83,21 @@ class Trainer():
                     metric_total+=batch
             train_loss=(metric_loss/metric_total).item()
             train_acc=(metric_acc/metric_total).item()
+            self.history['train_loss'].append(train_loss)
+            self.history['train_acc'].append(train_acc)
             if valid_iter is not None:
                 val_loss,val_acc=self.evaluate(valid_iter)
                 self.history['val_loss'].append(val_loss)
                 self.history['val_acc'].append(val_acc)
-            self.history['train_loss'].append(train_loss)
-            self.history['train_acc'].append(train_acc)
-            print(f"epoch {epoch+1}, "
-                  f"train_loss: {train_loss:.4f}, "
-                  f"train_acc: {train_acc:.4f}, "
-                  f"val_loss: {val_loss:.4f}, "
-                  f"val_acc: {val_acc:.4f}")
+                print(f"epoch {epoch+1}, "
+                      f"train_loss: {train_loss:.4f}, "
+                      f"train_acc: {train_acc:.4f}, "
+                      f"val_loss: {val_loss:.4f}, "
+                      f"val_acc: {val_acc:.4f}")
+            else:
+                print(f"epoch {epoch+1}, "
+                      f"train_loss: {train_loss:.4f}, "
+                      f"train_acc: {train_acc:.4f}")
             self.scheduler.step()
 
     def evaluate(self,valid_iter):
@@ -117,8 +122,17 @@ class Trainer():
     def train(self):
         self.train_epoch(self.train_iter,self.valid_iter)
 
-    def predict(self):
-        pass
+    def predict(self,test_ds,train_valid_ds):
+        preds=[]
+        self.train_epoch(self.train_valid_iter,None)
+        for X,_ in self.test_iter:
+            y_hat=self.net(X.to(self.devices[0]))
+            preds.extend(y_hat.argmax(dim=1).type(torch.int32).cpu().numpy())
+        sorted_ids=list(range(1,len(test_ds)+1))
+        sorted_ids.sort(key=lambda x:str(x))
+        df=pd.DataFrame({'id':sorted_ids,'label':preds})
+        df['label']=df['label'].apply(lambda x:train_valid_ds.classes[x])
+        df.to_csv('submission.csv',index=False)
 
     def plot(self,val=True):
         epochs=range(1,len(self.history['train_loss'])+1)
