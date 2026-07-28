@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 import random
 from pathlib import Path
 from IPython import display
-import DataInit
+import Data_Prep
 from model import resnet18,pretrained_resnet18
 from Trainer import Trainer
 
@@ -31,8 +31,8 @@ def main():
     net=pretrained_resnet18() if pretrained else resnet18(10,3)
 
     #initialize dataset to a readable form for torchvision
-    data_dir=DataInit.load_data(BASE_DIR,demo=demo)
-    DataInit.reorg_cifar10_data(data_dir,valid_ratio)
+    data_dir=Data_Prep.load_data(BASE_DIR,demo=demo)
+    Data_Prep.reorg_cifar10_data(data_dir,valid_ratio)
 
     #data augmentation
     normalize=torchvision.transforms.Normalize(
