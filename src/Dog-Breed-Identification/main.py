@@ -7,8 +7,8 @@ import random
 from pathlib import Path
 from IPython import display
 import Data_Prep
-#from model import resnet18,pretrained_resnet18
-#from Trainer import Trainer
+from model import pretrained_resnet18,pretrained_resnet34
+from Trainer import Trainer
 
 def RandomSeed(seed:int):
     os.environ["PYTHONHASHSEED"]=str(seed)
@@ -34,15 +34,15 @@ def main():
 
     #parameters
     demo=True
-    pretrained=False
+    use_resnet34=True
     seed=42
     num_workers=4
     valid_ratio=0.1
     batch_size=32 if demo else 256
     lr,lr_period,lr_decay=1e-3,2,0.9
-    num_epochs=10 if pretrained else 20
+    num_epochs=10
     weight_decay=1e-4
-    #net=
+    net=pretrained_resnet34 if use_resnet34 else pretrained_resnet18
 
     #seed everything
     RandomSeed(seed)
@@ -87,6 +87,11 @@ def main():
                           pin_memory=True,worker_init_fn=seed_worker,generator=generator)
     test_iter=DataLoader(test_ds,batch_size,shuffle=False,drop_last=False,num_workers=num_workers,
                          pin_memory=True,worker_init_fn=seed_worker,generator=generator)
+
+    trainer=Trainer(pretrained_resnet34,train_iter,train_valid_iter,valid_iter,test_iter,
+                    batch_size,lr,lr_period,lr_decay,num_epochs,weight_decay)
+    trainer.train()
+    trainer.plot()
 
 if __name__=='__main__':
     main()
