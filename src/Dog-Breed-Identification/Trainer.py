@@ -73,7 +73,7 @@ class Trainer:
 
     def accuracy(self, y_hat, y):
         predictions = y_hat.argmax(dim=1)
-        return (predictions.to(y.dtype) == y).sum().item()
+        return (predictions.to(y.dtype) == y).sum()
 
     def train_epoch(self, train_iter, valid_iter=None):
         is_train_valid = train_iter is self.train_valid_iter and valid_iter is None
@@ -81,8 +81,8 @@ class Trainer:
 
         for epoch in range(self.num_epochs):
             self.net.train()
-            metric_loss = 0.0
-            metric_acc = 0
+            metric_loss = torch.zeros((),device=self.device)
+            metric_acc = torch.zeros((),device=self.device,dtype=torch.long)
             metric_total = 0
 
             for X, y in train_iter:
@@ -96,7 +96,7 @@ class Trainer:
                 self.optimizer.step()
 
                 batch_size = y.shape[0]
-                metric_loss += batch_loss.detach().item() * batch_size
+                metric_loss += batch_loss.detach() * batch_size
                 metric_acc += self.accuracy(y_hat.detach(), y)
                 metric_total += batch_size
 
@@ -106,8 +106,8 @@ class Trainer:
                     "and drop_last"
                 )
 
-            train_loss = metric_loss / metric_total
-            train_acc = metric_acc / metric_total
+            train_loss = (metric_loss / metric_total).item()
+            train_acc = (metric_acc / metric_total).item()
             self.history[f"{history_prefix}_loss"].append(train_loss)
             self.history[f"{history_prefix}_acc"].append(train_acc)
 
@@ -126,8 +126,8 @@ class Trainer:
 
     def evaluate(self, valid_iter):
         self.net.eval()
-        metric_loss = 0.0
-        metric_acc = 0
+        metric_loss = torch.zeros((),device=self.device)
+        metric_acc = torch.zeros((),device=self.device,dtype=torch.long)
         metric_total = 0
 
         with torch.no_grad():
@@ -138,13 +138,13 @@ class Trainer:
                 batch_loss = self.loss(y_hat, y)
 
                 batch_size = y.shape[0]
-                metric_loss += batch_loss.item() * batch_size
+                metric_loss += batch_loss * batch_size
                 metric_acc += self.accuracy(y_hat, y)
                 metric_total += batch_size
 
         if metric_total == 0:
             raise ValueError("The validation iterator produced no samples")
-        return metric_loss / metric_total, metric_acc / metric_total
+        return (metric_loss / metric_total).item(), (metric_acc / metric_total).item()
 
     def train(self):
         self.train_epoch(self.train_iter, self.valid_iter)

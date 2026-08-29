@@ -18,9 +18,9 @@ def RandomSeed(seed:int):
     torch.manual_seed(seed=seed)
     torch.cuda.manual_seed(seed=seed)
     torch.cuda.manual_seed_all(seed=seed)
-    torch.backends.cudnn.benchmark=False
-    torch.backends.cudnn.deterministic=True
-    torch.use_deterministic_algorithms(True,warn_only=True)
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.deterministic = False
+    torch.use_deterministic_algorithms(False)
 
 def seed_worker(worker_id):
     worker_seed=torch.initial_seed()%2**32 #map torch's seed to np's range
@@ -33,16 +33,16 @@ def main():
     BASE_DIR=Path(__file__).resolve().parents[2]
 
     #parameters
-    demo=True
+    demo=False
     use_resnet34=True
     seed=42
-    num_workers=4
+    num_workers=12
     valid_ratio=0.1
     batch_size=32 if demo else 256
-    lr,lr_period,lr_decay=1e-3,2,0.9
-    num_epochs=10
-    weight_decay=1e-4
-    net=pretrained_resnet34 if use_resnet34 else pretrained_resnet18
+    lr,lr_period,lr_decay=5e-4,2,0.9
+    num_epochs=16
+    weight_decay=1e-5
+    net=pretrained_resnet34() if use_resnet34 else pretrained_resnet18()
 
     #seed everything
     RandomSeed(seed)
@@ -79,16 +79,16 @@ def main():
 
     #define data iterator
     train_iter,train_valid_iter=[
-        DataLoader(dataset,batch_size,shuffle=True,drop_last=True,num_workers=num_workers,
-                   pin_memory=True,worker_init_fn=seed_worker,generator=generator)
+        DataLoader(dataset,batch_size,shuffle=True,drop_last=True,num_workers=num_workers,pin_memory=True,
+                   persistent_workers=num_workers>0,prefetch_factor=4,worker_init_fn=seed_worker,generator=generator)
         for dataset in (train_ds,train_valid_ds)
     ]
-    valid_iter=DataLoader(valid_ds,batch_size,shuffle=False,drop_last=False,num_workers=num_workers,
-                          pin_memory=True,worker_init_fn=seed_worker,generator=generator)
-    test_iter=DataLoader(test_ds,batch_size,shuffle=False,drop_last=False,num_workers=num_workers,
-                         pin_memory=True,worker_init_fn=seed_worker,generator=generator)
+    valid_iter=DataLoader(valid_ds,batch_size,shuffle=False,drop_last=False,num_workers=num_workers,pin_memory=True,
+                          persistent_workers=num_workers>0,prefetch_factor=4,worker_init_fn=seed_worker,generator=generator)
+    test_iter=DataLoader(test_ds,batch_size,shuffle=False,drop_last=False,num_workers=num_workers,pin_memory=True,
+                         persistent_workers=num_workers>0,prefetch_factor=4,worker_init_fn=seed_worker,generator=generator)
 
-    trainer=Trainer(pretrained_resnet34,train_iter,train_valid_iter,valid_iter,test_iter,
+    trainer=Trainer(net,train_iter,train_valid_iter,valid_iter,test_iter,
                     batch_size,lr,lr_period,lr_decay,num_epochs,weight_decay)
     trainer.train()
     trainer.plot()
