@@ -1,0 +1,57 @@
+{
+  "run_id": "tuned2_s2026",
+  "experiment": "tuned2",
+  "folds": 5,
+  "seed": 2026,
+  "data_dir": "H:\\deeplearning\\Project\\data\\house_price",
+  "models": [
+    "ridge",
+    "elasticnet",
+    "lasso",
+    "kernel_ridge",
+    "svr",
+    "gradient_boosting",
+    "lightgbm",
+    "xgboost",
+    "catboost"
+  ],
+  "metadata": {
+    "removed_outlier_ids": [
+      524,
+      1299
+    ],
+    "n_train": 1458,
+    "n_test": 1459,
+    "n_features": 354,
+    "log_transformed_numeric_features": [
+      "LotFrontage",
+      "LotArea",
+      "MasVnrArea",
+      "BsmtFinSF1",
+      "BsmtFinSF2",
+      "BsmtUnfSF",
+      "1stFlrSF",
+      "2ndFlrSF",
+      "LowQualFinSF",
+      "GrLivArea",
+      "BsmtHalfBath",
+      "KitchenAbvGr",
+      "GarageYrBlt",
+      "WoodDeckSF",
+      "OpenPorchSF",
+      "EnclosedPorch",
+      "3SsnPorch",
+      "ScreenPorch",
+      "PoolArea",
+      "MiscVal",
+      "TotalSF",
+      "TotalPorchSF",
+      "TotalSqrFootage",
+      "HasPool",
+      "HasGarage",
+      "HasBsmt",
+      "OverallQual_GrLivArea",
+      "GarageScore"
+    ]
+  }
+}

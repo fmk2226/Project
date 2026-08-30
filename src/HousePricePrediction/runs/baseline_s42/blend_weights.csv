@@ -1,0 +1,5 @@
+model,weight
+ridge,2.1032718978727283e-17
+elasticnet,0.710871665023646
+gradient_boosting,0.2891283349763541
+random_forest,3.109385271100859e-18

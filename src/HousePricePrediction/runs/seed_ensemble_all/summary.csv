@@ -1,0 +1,2 @@
+run_id,experiment,model,oof_loss,oof_acc,oof_rmse_dollars,oof_mae_dollars,oof_r2
+seed_ensemble_all,seed_ensemble_all_models,blend_optimized,0.10699706465574127,0.7743484224965707,20491.29199927471,12450.412314628657,0.9335099859310922
