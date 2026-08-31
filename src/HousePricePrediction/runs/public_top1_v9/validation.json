@@ -1,0 +1,21 @@
+{
+  "candidate": "best_submission.csv",
+  "source_notebook": "https://www.kaggle.com/code/jesucristo/1-house-prices-solution-top-1",
+  "source_version": 4,
+  "source_script_version_id": 12845823,
+  "displayed_public_score": 0.10649,
+  "sha256": "b60a52267e510011f2da3a5b30fdd44e9a4bcf2ab51daa15e394d204344cbedd",
+  "rows": 1459,
+  "columns": ["Id", "SalePrice"],
+  "id_min": 1461,
+  "id_max": 2919,
+  "unique_ids": 1459,
+  "ids_match_tuned3": true,
+  "missing_values": 0,
+  "all_predictions_finite": true,
+  "sale_price_min": 34359.71,
+  "sale_price_median": 157072.0,
+  "sale_price_max": 810931.0000000001,
+  "correlation_vs_tuned3": 0.9963485809320286,
+  "log_rmse_vs_tuned3": 0.03362958772273985
+}
