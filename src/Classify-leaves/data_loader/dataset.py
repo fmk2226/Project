@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from torchvision.io import read_image
+from PIL import Image
 from torch.utils.data import Dataset
 
 class Leafdataset(Dataset):
@@ -42,7 +42,7 @@ class Leafdataset(Dataset):
             For an unlabeled CSV, the transformed image only.
         """
         image_path=os.path.join(self.data_dir,self.df.iloc[index,0])
-        img=read_image(image_path)
+        img=Image.open(image_path).convert("RGB")
         if self.transform!=None:
             img=self.transform(img)
         if "label" not in self.df.columns:
