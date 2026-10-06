@@ -1,12 +1,11 @@
 from sklearn.model_selection import StratifiedKFold
-from torch.utils.data import Subset
 
 def make_folds(train_df,n_splits=5,seed=42):
     """ Yield (fold number, training indices, validation indices)
     
     Args:
         train_df: training dataframe
-        n_spilits: number of folds
+        n_splits: number of folds
         seed: random seed
     """
     splitter=StratifiedKFold(n_splits=n_splits,shuffle=True,random_state=seed)
