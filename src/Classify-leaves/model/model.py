@@ -12,17 +12,20 @@ class LeafNet(nn.Module):
     Attributes:
         Pretrained timm model using MLP as classifier
     """
-    def __init__(self,model_name,num_classes=176,pretrained=True):
+    def __init__(self,model_name,num_classes=176,pretrained=True,use_mlp=False,**model_kwargs):
         super().__init__()
-        self.model=timm.create_model(model_name,pretrained=pretrained)
-        n_features=self.model.fc.in_features
-        fc=nn.Sequential(
-            nn.Linear(n_features,2048),nn.ReLU(),nn.Dropout(0.3),
-            nn.Linear(2048,2048),nn.ReLU(),nn.Dropout(0.1),
-            nn.Linear(2048,num_classes)
-        )
-        self.model.fc=fc
+        self.use_mlp=use_mlp
+        self.model=timm.create_model(model_name,pretrained=pretrained,num_classes=0 if use_mlp else num_classes,**model_kwargs)
+        if use_mlp:
+            n_features=self.model.num_features
+            self.classifier=nn.Sequential(nn.Linear(n_features,2048),nn.ReLU(),nn.Dropout(0.3),
+                                          nn.Linear(2048,2048),nn.ReLU(),nn.Dropout(0.1),
+                                          nn.Linear(2048,num_classes)
+                                          )
 
     def forward(self,x):
         """Return class logits with shape [batch_size,num_classes]"""
-        return self.model(x)
+        x=self.model(x)
+        if self.use_mlp:
+            x=self.classifier(x)
+        return x
