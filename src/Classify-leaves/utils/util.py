@@ -1,3 +1,5 @@
+import pandas as pd
+
 def inf_loop(data_loader):
     """ Wrapper function for a endless data_loader
 
@@ -12,16 +14,20 @@ def inf_loop(data_loader):
 
 class MetricTracker:
     def __init__(self,*keys):
-        pass
+        self._data=pd.DataFrame(index=keys,columns=['total','counts','average'])
+        self.reset()
 
     def reset(self):
-        pass
+        for col in self._data.columns:
+            self._data[col].values[:]=0
 
     def update(self,key,value,n=1):
-        pass
+        self._data['total'][key]+=value*n
+        self._data['counts'][key]+=n
+        self._data['average'][key]=self._data['total']/self._data['counts']
 
     def avg(self,key):
-        pass
+        return self._data['average']
 
     def result(self):
-        pass
+        return dict(self._data['average'])
