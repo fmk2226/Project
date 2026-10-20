@@ -38,9 +38,9 @@ class MetricTracker:
             value: Scalar metric value, usually a batch's average.
             n: Usually the batch size.
         """
-        self._data['total'][key]+=value*n
-        self._data['counts'][key]+=n
-        self._data['average'][key]=self._data['total'][key]/self._data['counts'][key]
+        self._data.loc[key,'total']+=value*n
+        self._data.loc[key,'counts']+=n
+        self._data.loc[key,'average']=self._data.loc[key,'total']/self._data.loc[key,'counts']
 
     def avg(self,key):
         """ Return the average of a metric
@@ -51,7 +51,7 @@ class MetricTracker:
         Returns:
             The average of a metric
         """
-        return self._data['average'][key]
+        return self._data.loc[key,'average']
 
     def result(self):
         """ Return the current averages of all metrics.
