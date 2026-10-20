@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+
 from utils import inf_loop,MetricTracker
 
 class Trainer:
@@ -86,14 +88,25 @@ class Trainer:
         return log
 
     def _valid_epoch(self,epoch):
-        pass
+        self.model.eval()
+        self.valid_metrics.reset()
+        with torch.no_grad():
+            for batch_idx,(X,y) in enumerate(self.valid_data_loader):
+                X,y=X.to(self.device),y.to(self.device)
+                y_hat=self.model(X)
+                loss=self.criterion(y_hat,y)
+                n=X.shape[0]
+                self.valid_metrics.update('loss',loss.item(),n)
+                for met in self.metric_ftns:
+                    self.valid_metrics.update(met.__name__,met(y_hat,y),n)
+        return self.valid_metrics.result()
 
     def _progress(self,batch_idx):
         pass
 
     def _save_checkpoint(self,epoch,save_best=False):
         # TODO: only store plain Python types (tensors, dict, list, int, float, str) plus label_to_id,
-        #   torch.load uses weights_only=True by default since torch 2.6, custom class objects fail to load
+        #   torch.load uses weights_only=True by default, custom class objects might fail to load
         pass
 
     def _resume_checkpoint(self,resume_path):
