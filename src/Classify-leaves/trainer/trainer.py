@@ -49,7 +49,32 @@ class Trainer:
         self.valid_metrics=MetricTracker("loss",*metric_names)
 
     def _train_epoch(self,epoch):
-        pass
+        self.model.train()
+        self.train_metrics.reset()
+        for batch_idx,(X,y) in enumerate(self.data_loader):
+            X,y=X.to(self.device),y.to(self.device)
+            self.optimizer.zero_grad()
+            y_hat=self.model(X)
+            loss=self.criterion(y_hat,y)
+            loss.backward()
+            self.optimizer.step()
+            n=X.shape[0]
+            self.train_metrics.update('loss',loss.item(),n)
+            for met in self.metric_ftns:
+                self.train_metrics.update(met.__name__,met(y_hat,y),n)
+            if batch_idx % self.log_step==0:
+                print(f"Train Epoch: {epoch} [{batch_idx+1}/{self.len_epoch}] Loss: {loss.item():.4f}")
+                # TODO: change later for logger
+                # TODO: add TensorBoard writer
+            if batch_idx+1==self.len_epoch:
+                break
+        log=self.train_metrics.result()
+        if self.do_validation:
+            val_log=self._valid_epoch(epoch)
+            log.update(**{'val_'+k:v for k,v in val_log.items()})
+        if self.lr_scheduler is not None:
+            self.lr_scheduler.step()
+        return log
 
     def _valid_epoch(self,epoch):
         pass
