@@ -1,5 +1,7 @@
 import pandas as pd
 
+# TODO: add set_seed(seed) that seeds random, numpy and torch (incl. cuda) for reproducible K-fold runs
+
 def inf_loop(data_loader):
     """ Wrapper function for a endless data_loader
 

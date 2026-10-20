@@ -38,6 +38,8 @@ class LeafDataLoader(DataLoader):
             train_ds=Subset(train_ds,train_idx)
             valid_ds=Subset(valid_ds,valid_idx)
 
+            # TODO: add pin_memory=True, persistent_workers=True to all DataLoaders here
+            #   (persistent_workers avoids restarting workers every epoch, slow on Windows)
             super().__init__(train_ds,batch_size,shuffle,num_workers=num_workers)
             self.valid_iter=DataLoader(valid_ds,batch_size,shuffle=False,num_workers=num_workers)
 
