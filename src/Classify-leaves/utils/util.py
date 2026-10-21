@@ -1,6 +1,19 @@
 import pandas as pd
+import random
+import numpy as np
+import torch
 
 # TODO: add set_seed(seed) that seeds random, numpy and torch (incl. cuda) for reproducible K-fold runs
+def set_seed(seed):
+    """ Seed everythin random, numpy and torch for reproducible runs
+    
+    Args:
+        seed: Random seed
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 def inf_loop(data_loader):
     """ Wrapper function for a endless data_loader
