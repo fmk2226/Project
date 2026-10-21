@@ -3,9 +3,8 @@ import random
 import numpy as np
 import torch
 
-# TODO: add set_seed(seed) that seeds random, numpy and torch (incl. cuda) for reproducible K-fold runs
 def set_seed(seed):
-    """ Seed everythin random, numpy and torch for reproducible runs
+    """ Seed everything random, numpy and torch for reproducible runs
     
     Args:
         seed: Random seed
