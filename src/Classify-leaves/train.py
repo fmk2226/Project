@@ -13,13 +13,16 @@ from utils import set_seed
 ROOT=Path(__file__).resolve().parent
 DATA_DIR=ROOT.parents[1]/'data'/'classify_leaves'
 
+MODEL_NAME='resnet50d'
+FOLD=0
+
 config={
     'seed':42,
     'arch':{'model_name':'resnet50d','num_classes':176,'pretrained':True},
     'data_loader':{'csv_file':str(DATA_DIR/'train.csv'),'data_dir':str(DATA_DIR),
                    'batch_size':64,'fold':0,'n_splits':5,'num_workers':8},
     'optimizer':{'lr':1e-3,'weight_decay':1e-5},
-    'trainer':{'epochs':30,'save_dir':str(ROOT/'saved'/'resnet50d'/'fold0')}
+    'trainer':{'epochs':30,'save_dir':str(ROOT/'saved'/'model_weights'/MODEL_NAME/f'fold{FOLD}')}
 }
 
 def main(config):
