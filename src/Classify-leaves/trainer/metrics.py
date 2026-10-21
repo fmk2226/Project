@@ -1,7 +1,7 @@
 import torch
 
 def accuracy(output,target):
-    """ Evaluate accuracy of one epoch
+    """ Evaluate accuracy of one batch
     
     Args:
         output: Class logits with shape [batch_size,num_classes].
