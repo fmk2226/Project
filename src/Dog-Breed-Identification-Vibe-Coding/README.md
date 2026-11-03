@@ -32,7 +32,7 @@
 运行环境：
 
 ```powershell
-$python = 'C:\Users\fmk\.conda\envs\pytorch\python.exe'
+$python = 'H:\deeplearning\.venv\Scripts\python.exe'
 & $python .\src\Dog-Breed-Identification-Vibe-Coding\main.py --name my_run
 & $python .\src\Dog-Breed-Identification-Vibe-Coding\summarize.py
 & $python -m unittest discover .\src\Dog-Breed-Identification-Vibe-Coding\tests -v
@@ -50,10 +50,10 @@ $python = 'C:\Users\fmk\.conda\envs\pytorch\python.exe'
 `runs/vit_l16_full5_s2022/submission.csv`；Kaggle Public Log Loss 为
 **0.09746**。详见 `EXPERIMENTS.md`、`KAGGLE_RESULTS.md` 与
 `TRAINING_LOG.csv`。
-复现命令:
-"C:\Users\fmk\.conda\envs\pytorch\python.exe" "H:\deeplearning\Project\src\Dog-Breed-Identification-Vibe-Coding\main.py" --name vit_l16_full5_s2022_reproduce --model vit_l_16 --augment vit --epochs 5 --full-epochs 5 --freeze-epochs 5 --batch-size 64 --image-size 224 --workers 8 --lr 0.072 --backbone-lr 0 --weight-decay 0 --dropout 0 --label-smoothing 0 --mixup-alpha 0 --optimizer sgd --momentum 0.9 --scheduler constant --val-ratio 0.15 --seed 2022 --split-seed 2022 --amp bf16
+复现命令（上述结果由旧环境 Python 3.9、torch 2.8.0+cu129 得到，当前环境下数值可能略有差异）:
+"H:\deeplearning\.venv\Scripts\python.exe" "H:\deeplearning\Project\src\Dog-Breed-Identification-Vibe-Coding\main.py" --name vit_l16_full5_s2022_reproduce --model vit_l_16 --augment vit --epochs 5 --full-epochs 5 --freeze-epochs 5 --batch-size 64 --image-size 224 --workers 8 --lr 0.072 --backbone-lr 0 --weight-decay 0 --dropout 0 --label-smoothing 0 --mixup-alpha 0 --optimizer sgd --momentum 0.9 --scheduler constant --val-ratio 0.15 --seed 2022 --split-seed 2022 --amp bf16
 
-以下为此前 ResNet34 路线：
+以下为此前 ResNet34 路线（同样由旧环境得到）：
 
 两次固定验证集复验分别得到 86.83%（seed=42）和 86.90%（seed=123），均值 86.86%；原设计基线为 84.16%。最佳单次 checkpoint 位于 `runs/final_mixup02_10ep_seed123/best.pt`。
 
@@ -62,7 +62,7 @@ $python = 'C:\Users\fmk\.conda\envs\pytorch\python.exe'
 进一步使用 seed=42/123 两个全量模型、水平翻转 TTA 和验证集温度校准（T=0.63）后，Kaggle Public Log Loss 从 0.54583 降至 0.42594。详见 `KAGGLE_RESULTS.md`，复现脚本为 `optimize_submission.py`。
 
 ```powershell
-$python = 'C:\Users\fmk\.conda\envs\pytorch\python.exe'
+$python = 'H:\deeplearning\.venv\Scripts\python.exe'
 & $python .\src\Dog-Breed-Identification-Vibe-Coding\main.py `
   --name reproduce_best --model resnet34 --augment basic `
   --epochs 10 --freeze-epochs 3 --batch-size 256 --image-size 224 --workers 8 `

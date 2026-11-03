@@ -16,10 +16,10 @@ PyTorch 四模块框架中加入 `vit_l_16`。只使用比赛训练集，冻结 
 及逐行概率和校验。Kaggle 提交状态为 Success，Public Log Loss 为
 **0.09746**，超过原定 `0.1x` 目标并进入 `0.0x`。
 
-复现命令：
+复现命令（上述结果由旧环境 Python 3.9、torch 2.8.0+cu129 得到，当前环境下数值可能略有差异）：
 
 ```powershell
-$python = 'C:\Users\fmk\.conda\envs\pytorch\python.exe'
+$python = 'H:\deeplearning\.venv\Scripts\python.exe'
 & $python .\main.py `
   --name vit_l16_full5_s2022 --model vit_l_16 --augment vit `
   --epochs 5 --full-epochs 5 --freeze-epochs 5 `

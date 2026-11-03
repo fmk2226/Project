@@ -20,17 +20,17 @@ determined by `val_loss`/`oof_loss` (RMSLE), not by this auxiliary accuracy.
 ## Run
 
 ```powershell
-C:\Users\fmk\.conda\envs\pytorch\python.exe main.py --experiment baseline --run-name baseline_s42
-C:\Users\fmk\.conda\envs\pytorch\python.exe main.py --experiment tuned1 --run-name tuned1_s42
-C:\Users\fmk\.conda\envs\pytorch\python.exe main.py --experiment tuned2 --run-name tuned2_s42
-C:\Users\fmk\.conda\envs\pytorch\python.exe main.py --experiment tuned3 --folds 10 --run-name tuned3_s42
+H:\deeplearning\.venv\Scripts\python.exe main.py --experiment baseline --run-name baseline_s42
+H:\deeplearning\.venv\Scripts\python.exe main.py --experiment tuned1 --run-name tuned1_s42
+H:\deeplearning\.venv\Scripts\python.exe main.py --experiment tuned2 --run-name tuned2_s42
+H:\deeplearning\.venv\Scripts\python.exe main.py --experiment tuned3 --folds 10 --run-name tuned3_s42
 ```
 
 Each run is stored under `runs/<run-name>/`.  The project-level
 `TRAINING_LOG.csv` accumulates fold metrics across runs.
 
-Optional boosting wheels can be installed into `.deps`:
+Optional boosting wheels can be installed into `.deps`. CatBoost has no Python 3.15 wheel, so `model.py` skips it in this environment:
 
 ```powershell
-C:\Users\fmk\.conda\envs\pytorch\python.exe -m pip install --target .deps --no-deps lightgbm==4.6.0 xgboost==2.1.4 catboost==1.2.10
+uv pip install --python H:\deeplearning\.venv\Scripts\python.exe --target .deps --no-deps lightgbm==4.6.0 xgboost==2.1.4
 ```
