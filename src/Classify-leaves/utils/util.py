@@ -41,8 +41,7 @@ class MetricTracker:
 
     def reset(self):
         """ Reset all metric totals, counts, and averages to 0 """
-        for col in self._data.columns:
-            self._data[col].values[:]=0
+        self._data.loc[:,:]=0
 
     def update(self,key,value,n=1):
         """ Update a metric's weighted total, counts, and average.
