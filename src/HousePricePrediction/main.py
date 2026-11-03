@@ -127,7 +127,8 @@ def prepare_data(train: pd.DataFrame, test: pd.DataFrame):
     for column in numeric:
         values = all_features[column]
         if values.min() >= 0 and values.nunique() > 2 and skew(values) > 0.50:
-            lam = boxcox_normmax(values.to_numpy(dtype=np.float64) + 1.0)
+            # The default bracket raises BracketError on LotArea and 1stFlrSF with scipy 1.18.
+            lam = boxcox_normmax(values.to_numpy(dtype=np.float64) + 1.0, brack=(-1.0, 1.0))
             all_features[column] = boxcox1p(values, lam)
             skewed.append(column)
 
