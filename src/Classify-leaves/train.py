@@ -18,9 +18,9 @@ FOLD=0
 
 config={
     'seed':42,
-    'arch':{'model_name':'resnet50d','num_classes':176,'pretrained':True},
+    'arch':{'model_name':MODEL_NAME,'num_classes':176,'pretrained':True},
     'data_loader':{'csv_file':str(DATA_DIR/'train.csv'),'data_dir':str(DATA_DIR),
-                   'batch_size':64,'fold':0,'n_splits':5,'num_workers':8},
+                   'batch_size':64,'fold':FOLD,'n_splits':5,'num_workers':8},
     'optimizer':{'lr':1e-3,'weight_decay':1e-5},
     'trainer':{'epochs':30,'save_dir':str(ROOT/'saved'/'model_weights'/MODEL_NAME/f'fold{FOLD}')}
 }
