@@ -8,7 +8,7 @@ from model.model import LeafNet
 ROOT=Path(__file__).resolve().parent
 DATA_DIR=ROOT.parents[1]/'data'/'classify_leaves'
 MODEL_DIR=ROOT/'saved'/'model_weights'
-OUTPUT_DIR=ROOT/'outputs'
+OUTPUT_DIR=ROOT/'saved'/'submissions'
 
 MODEL_NAME='resnet50d'
 FOLDS=[0]
@@ -16,7 +16,7 @@ FOLDS=[0]
 config={
     'check_points':[str(MODEL_DIR/MODEL_NAME/f'fold{f}'/'model_best.pth') for f in FOLDS],
     'data_loader':{'csv_file':str(DATA_DIR/'test.csv'),'data_dir':str(DATA_DIR),
-                   'batch_size':256,'num_workers':8,'Training':False},
+                   'batch_size':1028,'num_workers':8,'Training':False},
     'submission_path':str(OUTPUT_DIR/'submission.csv')
 }
 
@@ -48,14 +48,24 @@ def main(config):
         models.append(model)
         label_to_id=mapping
 
-    id_to_label={id:label for label,id in label_to_id.items()}
+    id_to_label={idx:label for label,idx in label_to_id.items()}
     data_loader=LeafDataLoader(**config['data_loader'])
 
+    preds=[]
     for X in data_loader:
         with torch.no_grad():
             X=X.to(device)
             y=[model(X) for model in models]
             # calculate the average probability from logits
             probs=sum(torch.softmax(logit,dim=1) for logit in y)/len(models)
-            
-    
+            preds.extend(probs.argmax(dim=1).tolist())
+
+    submission=pd.read_csv(config['data_loader']['csv_file'])
+    submission['label']= [id_to_label[pred] for pred in preds]
+    submission_path=Path(config['submission_path'])
+    submission_path.parent.mkdir(parents=True,exist_ok=True)
+    submission.to_csv(submission_path,index=False)
+    print(f"Saved {len(submission)} predictions to {submission_path}")
+
+if __name__=='__main__':
+    main(config)
