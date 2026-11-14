@@ -10,11 +10,11 @@ DATA_DIR=ROOT.parents[1]/'data'/'classify_leaves'
 MODEL_DIR=ROOT/'saved'/'model_weights'
 OUTPUT_DIR=ROOT/'saved'/'submissions'
 
-MODEL_NAME='resnet50d'
-FOLDS=[0]
+MODEL_NAMES=['resnet50d','seresnext50_32x4d']
+FOLDS=[0,1,2,3,4]
 
 config={
-    'check_points':[str(MODEL_DIR/MODEL_NAME/f'fold{f}'/'model_best.pth') for f in FOLDS],
+    'check_points':[str(MODEL_DIR/model/f'fold{f}'/'model_best.pth') for model in MODEL_NAMES for f in FOLDS],
     'data_loader':{'csv_file':str(DATA_DIR/'test.csv'),'data_dir':str(DATA_DIR),
                    'batch_size':512,'num_workers':8,'Training':False},
     'submission_path':str(OUTPUT_DIR/'submission.csv')
