@@ -1,0 +1,27 @@
+seed: 42
+
+arch:
+    model_name: resnet50d       # timm model name, --arch overrides this value
+    num_classes: 176
+    pretrained: True
+
+data_loader:
+    csv_file: ../../data/classify_leaves/train.csv      #relative to this project's folder
+    data_dir: ../../data/classify_leaves
+    batch_size: 64
+    n_splits: 5                 # train.py trains the model on fold[0] to fold[n_splits-1]
+    num_workers: 8
+
+optimizer:
+    type: AdamW
+    args:
+        lr: 1.0e-3
+        weight_decay: 1.0e-5
+
+lr_scheduler:
+    type: CosineAnnealingLR
+    args: {}
+
+trainer:
+    epochs: 30                  # --epochs overrides this value
+    save_dir: saved/model_weights
