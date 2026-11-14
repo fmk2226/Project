@@ -16,7 +16,7 @@ FOLDS=[0]
 config={
     'check_points':[str(MODEL_DIR/MODEL_NAME/f'fold{f}'/'model_best.pth') for f in FOLDS],
     'data_loader':{'csv_file':str(DATA_DIR/'test.csv'),'data_dir':str(DATA_DIR),
-                   'batch_size':1028,'num_workers':8,'Training':False},
+                   'batch_size':512,'num_workers':8,'Training':False},
     'submission_path':str(OUTPUT_DIR/'submission.csv')
 }
 
