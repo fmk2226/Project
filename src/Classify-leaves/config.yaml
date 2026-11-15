@@ -23,5 +23,5 @@ lr_scheduler:
     args: {}
 
 trainer:
-    epochs: 30                  # --epochs overrides this value
+    epochs: 50                  # --epochs overrides this value
     save_dir: saved/model_weights
