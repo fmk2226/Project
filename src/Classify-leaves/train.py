@@ -28,12 +28,15 @@ def train_fold(config,fold):
     fold_config['trainer']['save_dir']=str(Path(config['trainer']['save_dir'])/f'fold{fold}')
 
     set_seed(config['seed'])
-    device=torch.device('cuda')
+    device_ids=list(range(torch.cuda.device_count()))
+    device=torch.device('cuda',device_ids[0])
 
     data_loader=LeafDataLoader(**fold_config['data_loader'],seed=config['seed'])
     valid_data_loader=data_loader.split_validation()
 
     model=LeafNet(**config['arch']).to(device)
+    if len(device_ids)>1:
+        model=nn.DataParallel(model,device_ids=device_ids)
     criterion=nn.CrossEntropyLoss()
     optimizer=init_obj(config,'optimizer',torch.optim,model.parameters())
     lr_scheduler=init_obj(config,'lr_scheduler',torch.optim.lr_scheduler,optimizer,T_max=config['trainer']['epochs'])

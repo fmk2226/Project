@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from torch import nn
 from utils import inf_loop,MetricTracker
 from pathlib import Path
 import time
@@ -137,9 +138,11 @@ class Trainer:
             epoch: Current epoch number.
             save_best: Whether this epoch has the best validation accuracy so far.
         """
+        #Unwrap DataParallel to save weights without the "module." prefix
+        model=self.model.module if isinstance(self.model,nn.DataParallel) else self.model
         state={
             'epoch':epoch,
-            'state_dict':self.model.state_dict(),
+            'state_dict':model.state_dict(),
             'optimizer':self.optimizer.state_dict(),
             'lr_scheduler':self.lr_scheduler.state_dict() if self.lr_scheduler is not None else None,
             'best_acc':self.best_acc,
