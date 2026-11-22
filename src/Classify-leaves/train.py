@@ -6,12 +6,14 @@ import copy
 import torch
 from torch import nn
 from pathlib import Path
+import logging
 
 from data_loader.data_loaders import LeafDataLoader
 from model.model import LeafNet
 from trainer import Trainer,accuracy,top_k_acc
 from utils import set_seed
 from parse_config import ROOT,load_config,init_obj
+from logger.logger import setup_logging
 
 def train_fold(config,fold):
     """ Train a new model with one fold of the data for validation.
@@ -26,6 +28,9 @@ def train_fold(config,fold):
     fold_config=copy.deepcopy(config)
     fold_config['data_loader']['fold']=fold
     fold_config['trainer']['save_dir']=str(Path(config['trainer']['save_dir'])/f'fold{fold}')
+    setup_logging(fold_config['trainer']['save_dir'])
+    logger=logging.getLogger("train")
+    logger.info("Starting fold %d",fold)
 
     set_seed(config['seed'])
     device_ids=list(range(torch.cuda.device_count()))
