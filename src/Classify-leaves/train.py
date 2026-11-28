@@ -14,6 +14,7 @@ from trainer import Trainer,accuracy,top_k_acc
 from utils import set_seed
 from parse_config import ROOT,load_config,init_obj
 from logger.logger import setup_logging
+from logger.visualization import PrintCallback
 
 def train_fold(config,fold):
     """ Train a new model with one fold of the data for validation.
@@ -46,7 +47,7 @@ def train_fold(config,fold):
     optimizer=init_obj(config,'optimizer',torch.optim,model.parameters())
     lr_scheduler=init_obj(config,'lr_scheduler',torch.optim.lr_scheduler,optimizer,T_max=config['trainer']['epochs'])
 
-    trainer=Trainer(model,criterion,[accuracy,top_k_acc],optimizer,fold_config,device,data_loader,valid_data_loader,lr_scheduler)
+    trainer=Trainer(model,criterion,[accuracy,top_k_acc],optimizer,fold_config,device,data_loader,valid_data_loader,lr_scheduler,callbacks=[PrintCallback()])
     trainer.train()
     return trainer.best_acc
 

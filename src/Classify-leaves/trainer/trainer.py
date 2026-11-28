@@ -19,6 +19,7 @@ class Trainer:
         valid_data_loader: Optional validation DataLoader.
         lr_scheduler: Optional learning-rate scheduler.
         len_epoch: Batches per epoch. Defaults to len(data_loader); when specified, the loader is wrapped in an endless iterator.
+        callbacks: Optional sequence of callbacks notified.
 
     Attributes:
         epochs: Total training epochs.
@@ -30,8 +31,10 @@ class Trainer:
         valid_metrics: Tracker for validation loss and metrics.
         best_acc: Best validation accuracy
         checkpoint_dir: Folder for saving checkpoints
+        callbacks: List of registered callbacks, empty by default.
     """
-    def __init__(self,model,criterion,metric_ftns,optimizer,config,device,data_loader,valid_data_loader=None,lr_scheduler=None,len_epoch=None):
+    def __init__(self,model,criterion,metric_ftns,optimizer,config,device,data_loader,
+                 valid_data_loader=None,lr_scheduler=None,len_epoch=None,callbacks=None):
         self.model=model
         self.criterion=criterion
         self.metric_ftns=metric_ftns
@@ -60,8 +63,13 @@ class Trainer:
         self.checkpoint_dir=Path(config['trainer']['save_dir'])
         self.checkpoint_dir.mkdir(parents=True,exist_ok=True)
         # TODO: AMP - create self.scaler=torch.amp.GradScaler('cuda') here
-        # TODO: callbacks - add callbacks=None arg, self.callbacks=callbacks or [], and
-        #   _notify(hook,**kwargs) that calls getattr(cb,hook)(self,**kwargs) on each callback
+        
+        self.callbacks=list(callbacks or [])
+
+    def _notify(self,hook,**kwargs):
+            """ Call the named hook on each callback, passing this trainer and the event arguments. """
+            for callback in self.callbacks:
+                getattr(callback,hook)(self,**kwargs)
 
     def _train_epoch(self,epoch):
         """ Train the model for one epoch, then validate if a validation loader is given.
@@ -89,11 +97,7 @@ class Trainer:
             self.train_metrics.update('loss',loss.item(),n)
             for met in self.metric_ftns:
                 self.train_metrics.update(met.__name__,met(y_hat,y),n)
-            if batch_idx % self.log_step==0:
-                print(f"Train Epoch: {epoch} [{batch_idx+1}/{self.len_epoch}] Loss: {loss.item():.4f}")
-                # TODO: callbacks - replace this print with a PrintCallback, and call
-                #   self._notify('on_batch_end',epoch=epoch,batch_idx=batch_idx,loss=loss.item()) every batch
-                #   (each callback decides its own logging frequency)
+            self._notify("on_batch_end",epoch=epoch,batch_idx=batch_idx,loss=loss.item())   
             if batch_idx+1==self.len_epoch:
                 break
         log=self.train_metrics.result()
@@ -155,20 +159,18 @@ class Trainer:
 
     def _resume_checkpoint(self,resume_path):
         pass
-
+    
     def train(self):
-        """ Train on all epochs, print the log, and record the checkpoint by best validation accuracy """
-        # TODO: callbacks - call self._notify('on_epoch_end',epoch=epoch,log=log) after each epoch
-        #   and self._notify('on_train_end') after the loop; TensorBoard scalars & parameter
-        #   histograms (hist_every) go in TensorBoardCallback (logger/visualization.py), not here
-        for epoch in range(self.start_epoch,self.epochs+1):
-            start=time.time()
-            log=self._train_epoch(epoch)
-            print(f"Epoch {epoch}/{self.epochs} ({time.time()-start:.0f}s)")
-            for key,value in log.items():
-                print(f"    {key:15s}: {value:.4f}")
-            is_best=self.do_validation and log['val_accuracy']>self.best_acc
-            if is_best:
-                self.best_acc=log['val_accuracy']
-                print(f"    new best val_accuracy: {self.best_acc:.4f}")
-            self._save_checkpoint(epoch,save_best=is_best)
+        """ Train one fold, save checkpoints, and notify callbacks of epoch and training completion. """
+        try:
+            for epoch in range(self.start_epoch,self.epochs+1):
+                start=time.perf_counter()
+                log=self._train_epoch(epoch)
+                elapsed=time.perf_counter()-start
+                is_best=self.do_validation and log["val_accuracy"]>self.best_acc
+                if is_best:
+                    self.best_acc=log['val_accuracy']
+                self._save_checkpoint(epoch,save_best=is_best)
+                self._notify("on_epoch_end",epoch=epoch,log=log,elapsed=elapsed,is_best=is_best)
+        finally:
+            self._notify("on_train_end")
