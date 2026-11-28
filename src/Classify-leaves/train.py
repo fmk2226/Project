@@ -57,7 +57,6 @@ def main(config):
 
     best_accs=[]
     for fold in range(n_splits):
-        print(f"==== {model_name} fold {fold} ({fold+1}/{n_splits}) ====")
         best_accs.append(train_fold(config,fold))
 
     print(f"===== {model_name} {n_splits}-fold summary =====")
